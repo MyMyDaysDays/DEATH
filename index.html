@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Fuzzy Overlay with Interactive Text</title>
+<title>STAGE2</title>
 <link href="https://fonts.googleapis.com/css2?family=Workbench&display=swap" rel="stylesheet" />
 <style>
+  /* ... styles unchanged ... */
   *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
@@ -62,7 +63,7 @@
 
 <script>
   const textElement = document.getElementById('interactiveText');
-  const audioSrc = "ASONGMYSISTERMADEANDITHOUGHTITWASREALLYCOOLTOADDHERESORRYWASISUPPOSETMYOWNMUSICHERE.mp3";
+  const audioSrc = "ASONGMYSISTERMADEANDITHOUGHTITWASREALLYCOOLTOADDHERESORRYWASISUPPOSEDTOMAKEMYOWNMUSICHERE.mp3";
   const bgAudioSrc = "renewal.mp3";
   const voiceAudioSrc = "myvoice.mp3";
 
@@ -70,8 +71,10 @@
   let bgAudio = new Audio(bgAudioSrc);
   bgAudio.loop = true;
 
+  // Wow
   function playVoiceAudio() {
     const voiceAudio = new Audio(voiceAudioSrc);
+    // this donesn't work btw what the helllllllllllllllllllllllll
     voiceAudio.playbackRate = 0.9 + Math.random() * 0.2;
     voiceAudio.play().catch(e => console.warn("Voice audio play failed:", e));
   }
@@ -88,6 +91,13 @@
     { time: 41, text: "Is someone really out there?" },
     { time: 48, text: "..." },
   ];
+
+
+
+ // Sorry, I don't have anything very interesting here... But hey! You're a dirty cheater anyway for being here! Give me some time, will you?!
+
+
+ 
 
   const postAudioMessages = [
     { text: "You thought I was gonna put something here, huh?", duration: 6000 },
@@ -139,8 +149,6 @@
       animationFrameId = requestAnimationFrame(animateShrink);
     }
   }
-
- // Sorry, I don't have anything very interesting here... But hey! You're a dirty cheater anyway for being here! Give me some time, will you?!
 
   function runPostAudioSequence() {
     disableClick();
