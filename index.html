@@ -1,24 +1,206 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Access Denied</title>
-  <style>
-    body {
-      margin: 0;
-      background-color: black;
-      color: white;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      font-size: 2rem;
-      text-align: center;
-    }
-  </style>
+<meta charset="UTF-8" />
+<title>Fuzzy Overlay with Interactive Text</title>
+<link href="https://fonts.googleapis.com/css2?family=Workbench&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+  }
+  body {
+    background: black;
+    color: white;
+    font-family: 'Workbench', sans-serif;
+    transition: background-color 1s linear;
+  }
+  .container {
+    position: relative;
+    overflow: hidden;
+  }
+  .content {
+    height: 100vh;
+    display: grid;
+    place-items: center;
+    z-index: 5;
+    position: relative;
+  }
+  .title {
+    font-size: 32px;
+    text-align: center;
+    max-width: 80%;
+    cursor: pointer;
+    user-select: none;
+    transition: font-size 0.1s linear;
+  }
+  .fuzzy-overlay {
+    position: absolute;
+    inset: -200%;
+    background-image: url("noise.png");
+    background-size: 100px 100px;
+    opacity: 0.5;
+    mix-blend-mode: screen;
+    z-index: 0;
+    animation: shift 0.2s linear infinite both;
+  }
+  @keyframes shift {
+    0% { transform: translateX(10%) translateY(10%); }
+    100% { transform: translateX(-10%) translateY(-10%); }
+  }
+</style>
 </head>
 <body>
-  YOU'RE NOT SUPPOSED TO BE HERE YET
+  <div class="container">
+    <div class="content">
+      <h2 id="interactiveText" class="title" title="Click me">
+        I must applaud. Stage 2 will come before you know it. Patience is a virtue.
+      </h2>
+    </div>
+    <div class="fuzzy-overlay"></div>
+  </div>
+
+<script>
+  const textElement = document.getElementById('interactiveText');
+  const audioSrc = "ASONGMYSISTERMADEANDITHOUGHTITWASREALLYCOOLTOADDHERESORRYWASISUPPOSETMYOWNMUSICHERE.mp3";
+  const bgAudioSrc = "renewal.mp3";
+  const voiceAudioSrc = "myvoice.mp3";
+
+  let audio = new Audio(audioSrc);
+  let bgAudio = new Audio(bgAudioSrc);
+  bgAudio.loop = true;
+
+  function playVoiceAudio() {
+    const voiceAudio = new Audio(voiceAudioSrc);
+    voiceAudio.playbackRate = 0.9 + Math.random() * 0.2;
+    voiceAudio.play().catch(e => console.warn("Voice audio play failed:", e));
+  }
+
+  let playing = false;
+  let animationFrameId;
+  let startTime = 0;
+  let originalFontSize = parseFloat(getComputedStyle(textElement).fontSize);
+
+  const messages = [
+    { time: 20, text: "You're still here?" },
+    { time: 25, text: "Listening?" },
+    { time: 33, text: "I didn't know you'd get this far... Wow..." },
+    { time: 41, text: "Is someone really out there?" },
+    { time: 48, text: "..." },
+  ];
+
+  const postAudioMessages = [
+    { text: "You thought I was gonna put something here, huh?", duration: 6000 },
+    { text: "Well, um... I hope you enjoyed listening to the music regardless...", duration: 6000 },
+    { text: "...", duration: 5000 },
+    { text: "Hey, I don't have much entertainment for you, you know.", duration: 6000 },
+    { text: "I wish I had more, really, but...", duration: 4000 },
+    { text: "With just a couple of cogs, a pencil, and a journal,", duration: 6000 },
+    { text: "There isn't much.", duration: 6000 },
+    { text: "Nothing.", duration: 4000 },
+    { text: "Nothing at all.", duration: 5000 },
+    { text: "Do you know what scares me?", duration: 5000 },
+    { text: "The thought that there's a world.", duration: 5000 },
+    { text: "A world where everything is exactly the same...", duration: 6000 },
+    { text: "Except you don't exist.", duration: 7000 },
+    { text: "Everything functions perfectly without you...", duration: 6000 },
+    { text: "Ha, ha...", duration: 6000 },
+    { text: "The thought terrifies me.", duration: 5000 },
+  ];
+
+  let lastDisplayedText = textElement.textContent;
+
+  function disableClick() {
+    textElement.style.cursor = 'default';
+    textElement.removeEventListener('click', startAudio);
+  }
+
+  function animateShrink() {
+    const elapsed = (performance.now() - startTime) / 1000;
+    const duration = audio.duration || 1;
+    let progress = Math.min((elapsed / duration) * 0.5, 1);
+
+    const minFontSize = originalFontSize * 0.1;
+    const newSize = originalFontSize - (originalFontSize - minFontSize) * progress;
+    textElement.style.fontSize = `${newSize}px`;
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (elapsed >= messages[i].time) {
+        if (textElement.textContent !== messages[i].text) {
+          textElement.textContent = messages[i].text;
+          playVoiceAudio();
+          lastDisplayedText = messages[i].text;
+        }
+        break;
+      }
+    }
+
+    if (!audio.paused) {
+      animationFrameId = requestAnimationFrame(animateShrink);
+    }
+  }
+
+  function runPostAudioSequence() {
+    disableClick();
+    bgAudio.play().catch(e => console.warn("Background audio play failed:", e));
+
+    let i = 0;
+
+    function showNextMessage() {
+      if (i >= postAudioMessages.length) {
+        document.body.style.backgroundColor = 'black';
+        setTimeout(() => location.reload(), 1000);
+        return;
+      }
+
+      if (textElement.textContent !== postAudioMessages[i].text) {
+        textElement.textContent = postAudioMessages[i].text;
+        playVoiceAudio();
+        lastDisplayedText = postAudioMessages[i].text;
+      }
+
+      i++;
+
+      if (i <= 2) {
+        let fadeStart = performance.now();
+        let fadeDuration = postAudioMessages[i - 1].duration;
+        function fadeBG() {
+          let fadeElapsed = performance.now() - fadeStart;
+          let fadeProgress = fadeElapsed / fadeDuration;
+          if (fadeProgress > 1) fadeProgress = 1;
+          const grayLevel = Math.floor(0 + fadeProgress * 34);
+          document.body.style.backgroundColor = `rgb(${grayLevel},${grayLevel},${grayLevel})`;
+          if (fadeProgress < 1) {
+            requestAnimationFrame(fadeBG);
+          }
+        }
+        fadeBG();
+      }
+
+      setTimeout(showNextMessage, postAudioMessages[i - 1].duration);
+    }
+
+    showNextMessage();
+  }
+
+  function startAudio() {
+    if (playing) return;
+    playing = true;
+    audio.play().catch(e => console.error("Audio play failed:", e));
+    startTime = performance.now();
+
+    animationFrameId = requestAnimationFrame(animateShrink);
+
+    audio.addEventListener('ended', () => {
+      cancelAnimationFrame(animationFrameId);
+      runPostAudioSequence();
+    });
+
+    textElement.style.pointerEvents = 'none';
+    textElement.style.cursor = 'default';
+  }
+
+  textElement.addEventListener('click', startAudio);
+</script>
 </body>
 </html>
